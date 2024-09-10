@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { Issue } from '$lib/types'; // Adjust path as needed
+	import type { Issue } from '$lib/types';
 	import { formatTime, isDarkColor } from '$lib/utils';
 
 	export let issues: Issue[] = [];
