@@ -25,7 +25,8 @@ export interface Issue {
 	labels: {
 		nodes: Label[];
 	};
-	iid: string;
+	iid: number;
+	id: string;
 	timelogs: {
 		nodes: Timelog[];
 	};
@@ -38,7 +39,6 @@ export interface IssueTimeLog {
 
 export interface TimeData {
 	[username: string]: {
-		// [month: string]: UserMonthTime;
 		[day: string]: UserDayTime;
 	};
 }

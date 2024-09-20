@@ -294,22 +294,6 @@
 			zoomEnabled = false;
 		}
 	}
-
-	// const handleResize = () => {
-	// 	if (chartRef) {
-	// 		chartRef.update(); // Update chart to reflect the new size
-	// 	}
-	// };
-
-	// onMount(() => {
-	// 	// Add resize event listener
-	// 	window.addEventListener('resize', handleResize);
-	// });
-
-	// onDestroy(() => {
-	// 	// Remove resize event listener when component is destroyed
-	// 	window.removeEventListener('resize', handleResize);
-	// });
 </script>
 
 <div class="relative">

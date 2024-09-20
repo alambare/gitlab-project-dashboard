@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { TimeData, TimeUnit } from '$lib/types';
 	import { onDestroy, onMount } from 'svelte';
-	import { HOURS_PER_DAY, TIMEUNIT_HOURS } from '../../constant';
+	import { formatTime } from '$lib/utils';
 
 	export let userData: TimeData = {};
 	export let timeUnit: 'hours' | 'days' = 'hours';
@@ -24,16 +24,13 @@
 		}
 	}
 
-	// Convert months to 'YYYY-MM' format for sorting
 	const sortableMonths = Array.from(monthSet).map((month) => {
 		const [mm, yyyy] = month.split('/');
 		return `${yyyy}-${mm}`;
 	});
 
-	// Sort the months
 	sortableMonths.sort((a, b) => a.localeCompare(b));
 
-	// Convert back to 'MM/YYYY' format for display
 	months = sortableMonths.map((date) => {
 		const [yyyy, mm] = date.split('-');
 		return `${mm}/${yyyy}`;
@@ -43,7 +40,6 @@
 
 	monthlyTimeData = users.map((user) => {
 		const row: { month: string; timeSpent: number }[] = months.map((month) => {
-			// Convert the month back to the 'YYYY-MM' format to match the sorting format
 			const [mm, yyyy] = month.split('/');
 			const formattedMonth = `${yyyy}-${mm}`;
 
@@ -63,7 +59,6 @@
 		return { user, row };
 	});
 
-	// Format the time data based on the current timeUnit
 	function formatTimeData(timeUnit: TimeUnit) {
 		formattedTimeData = monthlyTimeData.map(({ user, row }) => ({
 			user,
@@ -74,17 +69,6 @@
 		}));
 	}
 
-	// Helper function to format time based on the timeUnit
-	function formatTime(timeUnit: TimeUnit, seconds: number): string {
-		const hours = seconds / 3600;
-		if (timeUnit === TIMEUNIT_HOURS) {
-			return hours.toFixed(0);
-		} else {
-			return (hours / HOURS_PER_DAY).toFixed(2);
-		}
-	}
-
-	// Reactive statements
 	$: formatTimeData(timeUnit);
 
 	let tableContainer: HTMLDivElement;
@@ -96,20 +80,15 @@
 	};
 
 	onMount(() => {
-		// Scroll to the right after the component is mounted
 		scrollToRight();
-
-		// Add resize event listener
 		window.addEventListener('resize', scrollToRight);
 	});
 
 	onDestroy(() => {
-		// Clean up event listener on component destroy
 		window.removeEventListener('resize', scrollToRight);
 	});
 
 	$: {
-		// Ensure to scroll to the right whenever the months or table is updated
 		scrollToRight();
 	}
 </script>
