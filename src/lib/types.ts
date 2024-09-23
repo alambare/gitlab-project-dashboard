@@ -59,3 +59,9 @@ export interface UserDayTime {
 }
 
 export type TimeUnit = typeof TIMEUNIT_HOURS | typeof TIMEUNIT_DAYS;
+
+export interface Task {
+	member: string;
+	task: string;
+	hours: Record<string, number>;
+}

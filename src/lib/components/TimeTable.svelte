@@ -94,7 +94,7 @@
 </script>
 
 <div class="mb-4 text-left">
-	<h2 class="mb-2 text-2xl font-bold text-gray-800">Monthly resources usage</h2>
+	<h2 class="mb-2 text-2xl font-bold text-gray-800">Monthly usage</h2>
 </div>
 
 <div class="overflow-x-auto" bind:this={tableContainer}>

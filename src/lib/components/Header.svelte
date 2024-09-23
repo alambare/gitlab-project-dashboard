@@ -1,13 +1,13 @@
 <script lang="ts">
 	import type { Issue } from '$lib/types';
 
-	export let currentView: string;
+	export let currentView: string = 'tasks';
 	export let loading: boolean;
 	export let issues: Issue[];
 	export let isHours: boolean;
 
-	const toggleView = () => {
-		currentView = currentView === 'table' ? 'time' : 'table';
+	const toggleView = (view: string) => {
+		currentView = view;
 	};
 
 	async function refreshIssues() {
@@ -35,7 +35,7 @@
 
 <div class="mb-6 flex items-center justify-between">
 	<div class="flex items-center space-x-4">
-		<h1 class="text-2xl font-semibold text-gray-800">GitLab Issues Dashboard</h1>
+		<h1 class="text-2xl font-semibold text-gray-800">GitLab - Activity tracking</h1>
 
 		<button
 			on:click={refreshIssues}
@@ -60,9 +60,24 @@
 		</button>
 	</div>
 
-	<button class="rounded bg-blue-600 px-4 py-2 text-white" on:click={toggleView}>
-		Switch to {currentView === 'time' ? 'Table View' : 'Time View'}
-	</button>
+	<div class="inline-flex overflow-hidden rounded-md border border-gray-300">
+		<button
+			class={`px-4 py-2 font-medium transition-colors duration-200 ${
+				currentView === 'tasks' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-800'
+			}`}
+			on:click={() => toggleView('tasks')}
+		>
+			Tasks
+		</button>
+		<button
+			class={`px-4 py-2 font-medium transition-colors duration-200 ${
+				currentView === 'resources' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-800'
+			}`}
+			on:click={() => toggleView('resources')}
+		>
+			Resources
+		</button>
+	</div>
 
 	<div class="flex items-center space-x-4">
 		<span class="text-sm font-medium text-gray-900 dark:text-gray-300">Days</span>
