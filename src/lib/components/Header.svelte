@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { fetchGitLabIssues } from '$lib/api/gitlab';
 	import type { Issue } from '$lib/types';
 
 	export let currentView: string = 'tasks';
@@ -12,24 +13,8 @@
 
 	async function refreshIssues() {
 		loading = true;
-		try {
-			const res = await fetch('/api/gitlab-issues', {
-				method: 'GET',
-				headers: {
-					'Content-Type': 'application/json'
-				}
-			});
-
-			if (!res.ok) {
-				throw new Error('Failed to fetch data');
-			}
-
-			issues = await res.json();
-		} catch (error) {
-			console.error('Failed to refresh data', error);
-		} finally {
-			loading = false;
-		}
+		issues = await fetchGitLabIssues(fetch);
+		loading = false;
 	}
 </script>
 
