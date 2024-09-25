@@ -8,6 +8,10 @@
 </script>
 
 <div class="flex flex-col space-y-4">
+	<p>
+		Add a label <span class="font-bold">{EPIC_LABEL_NAME}</span> to your issues to track them on this
+		view.
+	</p>
 	{#each issues.filter( (issue) => issue.labels.nodes.some((label) => label.title.toLowerCase() === EPIC_LABEL_NAME) ) as issue}
 		<IssueCard {issue} allIssues={issues} {timeUnit} />
 	{/each}
