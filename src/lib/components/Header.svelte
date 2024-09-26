@@ -1,11 +1,25 @@
 <script lang="ts">
-	import { fetchGitLabIssues } from '$lib/api/gitlab';
-	import type { Issue } from '$lib/types';
+	import { fetchGitLabContainers, fetchGitLabIssues } from '$lib/gitlab';
+	import type { Container, Issue } from '$lib/types';
+	import { currentContainerStore, updateCurrentContainer } from '../../stores';
 
 	export let currentView: string = 'tasks';
 	export let loading: boolean;
 	export let issues: Issue[];
 	export let isHours: boolean;
+	export let containers: Container[] | null;
+
+	let searchQuery: string = '';
+	let filteredContainers: Container[] = [];
+	let currentContainer: Container | null = null;
+
+	// Subscribe to the currentContainerStore to get the full container object
+	currentContainerStore.subscribe((value) => {
+		currentContainer = value;
+		if (currentContainer) {
+			searchQuery = currentContainer.name;
+		}
+	});
 
 	const toggleView = (view: string) => {
 		currentView = view;
@@ -15,6 +29,34 @@
 		loading = true;
 		issues = await fetchGitLabIssues(fetch);
 		loading = false;
+	}
+
+	// Filter containers based on the search query
+	async function filterContainers() {
+		if (containers === null) {
+			containers = await fetchGitLabContainers(fetch);
+		}
+
+		const query = searchQuery.toLowerCase();
+		filteredContainers = containers.filter(
+			(container) =>
+				container.fullPath.toLowerCase().includes(query) ||
+				container.name.toLowerCase().includes(query)
+		);
+	}
+
+	// Set selected container as the current container
+	async function selectContainer(container: Container) {
+		searchQuery = container.name; // Set searchQuery to the name of the selected container
+		filteredContainers = [];
+
+		let formerContainerPath = currentContainer?.fullPath;
+
+		updateCurrentContainer(container); // Update the store with the entire container object
+
+		if (formerContainerPath !== container.fullPath) {
+			await refreshIssues();
+		}
 	}
 </script>
 
@@ -43,6 +85,34 @@
 				/>
 			</svg>
 		</button>
+	</div>
+
+	<div class="relative">
+		<input
+			type="text"
+			placeholder="Select a project or a group"
+			bind:value={searchQuery}
+			on:focus={filterContainers}
+			on:input={filterContainers}
+			class="search-input w-64 rounded-lg border border-gray-300 px-4 py-2 shadow-md transition-all duration-300 ease-in-out focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-600"
+		/>
+		{#if filteredContainers.length > 0}
+			<ul
+				class="absolute left-0 z-20 mt-2 max-h-60 w-64 max-w-xs overflow-y-auto rounded-lg border border-gray-200 bg-white shadow-md transition-all duration-200 ease-in-out"
+			>
+				{#each filteredContainers as container}
+					<li>
+						<button
+							class="block w-full px-4 py-3 text-left text-gray-700 transition-colors duration-200 ease-in-out hover:bg-blue-50 hover:text-blue-600 focus:bg-blue-100 focus:text-blue-700 focus:outline-none"
+							on:click={() => selectContainer(container)}
+							on:keydown={(event) => event.key === 'Enter' && selectContainer(container)}
+						>
+							{container.name}
+						</button>
+					</li>
+				{/each}
+			</ul>
+		{/if}
 	</div>
 
 	<div class="inline-flex overflow-hidden rounded-md">
@@ -77,7 +147,7 @@
 
 			<span class="text-sm font-medium text-gray-900 dark:text-gray-700">Hours</span>
 		</div>
-		<!-- Settings Button -->
+
 		<button
 			on:click={() => toggleView('settings')}
 			class="text-gray-600 hover:text-gray-800"

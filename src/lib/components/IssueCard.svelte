@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { gitlabRestRequest } from '$lib/api/gitlab';
+	import { gitlabRestRequest } from '$lib/gitlab';
 	import type { Issue, TimeUnit, Timelog } from '$lib/types';
 	import IssueDetails from '$lib/components/IssueDetail.svelte';
 	import RelatedIssueItem from '$lib/components/RelatedIssueItem.svelte';

@@ -10,6 +10,3 @@ export const DEFAULT_GITLAB_URL = "https://gitlab.com"
 // TODO: move to a settings page.
 export const EPIC_LABEL_NAME = 'epic';
 
-// TODO: move to a filter in the header ??
-export const GITLAB_GROUP_NAME = 'dedl';
-

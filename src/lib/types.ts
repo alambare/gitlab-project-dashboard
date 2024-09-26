@@ -65,3 +65,9 @@ export interface Task {
 	task: string;
 	hours: Record<string, number>;
 }
+
+export interface Container {
+    fullPath: string;
+	name: string;
+    type: 'project' | 'group';
+}

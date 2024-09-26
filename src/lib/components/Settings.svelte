@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { fetchGitLabIssues } from '$lib/api/gitlab';
-	import type { Issue } from '$lib/types';
+	import { fetchGitLabContainers, fetchGitLabIssues } from '$lib/gitlab';
+	import type { Container, Issue } from '$lib/types';
 	import { gitlabUrl, accessToken, updateGitLabSettings } from '../../stores';
 	import { onMount } from 'svelte';
 
@@ -12,6 +12,7 @@
 	let showAccessToken = false;
 
 	export let issues: Issue[];
+	export let containers: Container[] | null;
 
 	// Subscribe to the store on mount to load the initial values
 	onMount(() => {
@@ -28,6 +29,7 @@
 	// Save the settings and update the store
 	const saveSettings = async () => {
 		updateGitLabSettings(currentGitlabUrl, currentAccessToken);
+		containers = await fetchGitLabContainers(fetch);
 		issues = await fetchGitLabIssues(fetch);
 	};
 
