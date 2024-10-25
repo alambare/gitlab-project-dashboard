@@ -46,7 +46,7 @@
 
 			if (Array.isArray(links)) {
 				const relatedPromises = links.map(async (link) => {
-					const relatedIssue = allIssues.find((i) => i.id == link.id);
+					const relatedIssue = allIssues.find((i) => i.id.endsWith('/' + link.id));
 					if (relatedIssue) {
 						return relatedIssue;
 					} else {
