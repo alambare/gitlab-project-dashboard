@@ -45,8 +45,9 @@ export function calculateTimeSpentByUserByDay(issues: Issue[]): TimeData {
 
 			// Push issue time
 			timeData[username][day].issues.push({
-				issueTitle: issue.title,
-				timeSpent: log.timeSpent
+				title: issue.title,
+				timeSpent: log.timeSpent,
+				url: issue.webUrl
 			});
 		});
 	});
@@ -62,7 +63,6 @@ export function calculateTimeSpentByUserByDay(issues: Issue[]): TimeData {
 			sortedUserDays[day] = timeData[username][day];
 		});
 
-		// Replace the user's day data with the sorted version
 		timeData[username] = sortedUserDays;
 	}
 

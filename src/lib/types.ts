@@ -30,6 +30,7 @@ export interface Issue {
 	timelogs: {
 		nodes: Timelog[];
 	};
+	webUrl: string;
 }
 
 export interface IssueTimeLog {
@@ -53,8 +54,9 @@ export interface UserMonthTime {
 export interface UserDayTime {
 	totalSeconds: number;
 	issues: {
-		issueTitle: string;
+		title: string;
 		timeSpent: number;
+		url: string;
 	}[];
 }
 
@@ -64,6 +66,7 @@ export interface Task {
 	member: string;
 	task: string;
 	hours: Record<string, number>;
+	url: string;
 }
 
 export interface Container {

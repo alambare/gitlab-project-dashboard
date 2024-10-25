@@ -29,7 +29,7 @@ async function fetchGitLabIssues(fetch: typeof window.fetch) {
                         }
                         iid
                         id
-                        timelogs(first: 100000) {
+                        timelogs {
                             nodes {
                                 summary
                                 timeSpent
@@ -38,7 +38,8 @@ async function fetchGitLabIssues(fetch: typeof window.fetch) {
                                     username
                                 }
                             }
-                        }
+                        },
+                        webUrl
                     }
                 }
             }

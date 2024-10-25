@@ -10,7 +10,7 @@
 </script>
 
 <div class="flex flex-wrap items-center justify-between">
-	<h2 class="mr-4 text-lg font-semibold text-gray-800">{issue.title}</h2>
+	<h2 class="mr-4 text-lg font-semibold text-gray-800"><a href={issue.webUrl}>{issue.title}</a></h2>
 
 	<div>
 		<span class="mr-1 text-sm text-gray-600">{formatDate(issue.createdAt)}</span> /
@@ -20,12 +20,12 @@
 	</div>
 
 	<div>
-		<span class="mr-1 text-sm text-gray-600">
-			{issue.timeEstimate > 0 ? formatTime(timeUnit, issue.timeEstimate) : '..'}
-		</span>
-		/
 		<span class="ml-1 mr-4 text-sm font-bold text-gray-600">
 			{total > 0 ? formatTime(timeUnit, total) : '..'}
+		</span>
+		/
+		<span class="mr-1 text-sm text-gray-600">
+			{issue.timeEstimate > 0 ? formatTime(timeUnit, issue.timeEstimate) : '..'}
 		</span>
 	</div>
 

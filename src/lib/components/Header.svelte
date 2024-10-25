@@ -85,34 +85,34 @@
 				/>
 			</svg>
 		</button>
-	</div>
 
-	<div class="relative">
-		<input
-			type="text"
-			placeholder="Select a project or a group"
-			bind:value={searchQuery}
-			on:focus={filterContainers}
-			on:input={filterContainers}
-			class="search-input w-64 rounded-lg border border-gray-300 px-4 py-2 shadow-md transition-all duration-300 ease-in-out focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-600"
-		/>
-		{#if filteredContainers.length > 0}
-			<ul
-				class="absolute left-0 z-20 mt-2 max-h-60 w-64 max-w-xs overflow-y-auto rounded-lg border border-gray-200 bg-white shadow-md transition-all duration-200 ease-in-out"
-			>
-				{#each filteredContainers as container}
-					<li>
-						<button
-							class="block w-full px-4 py-3 text-left text-gray-700 transition-colors duration-200 ease-in-out hover:bg-blue-50 hover:text-blue-600 focus:bg-blue-100 focus:text-blue-700 focus:outline-none"
-							on:click={() => selectContainer(container)}
-							on:keydown={(event) => event.key === 'Enter' && selectContainer(container)}
-						>
-							{container.name}
-						</button>
-					</li>
-				{/each}
-			</ul>
-		{/if}
+		<div class="relative">
+			<input
+				type="text"
+				placeholder="Select a project or a group"
+				bind:value={searchQuery}
+				on:focus={filterContainers}
+				on:input={filterContainers}
+				class="search-input w-64 rounded-lg border border-gray-300 px-4 py-2 shadow-md transition-all duration-300 ease-in-out focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-600"
+			/>
+			{#if filteredContainers.length > 0}
+				<ul
+					class="absolute left-0 z-20 mt-2 max-h-60 w-64 max-w-xs overflow-y-auto rounded-lg border border-gray-200 bg-white shadow-md transition-all duration-200 ease-in-out"
+				>
+					{#each filteredContainers as container}
+						<li>
+							<button
+								class="block w-full px-4 py-3 text-left text-gray-700 transition-colors duration-200 ease-in-out hover:bg-blue-50 hover:text-blue-600 focus:bg-blue-100 focus:text-blue-700 focus:outline-none"
+								on:click={() => selectContainer(container)}
+								on:keydown={(event) => event.key === 'Enter' && selectContainer(container)}
+							>
+								{container.name}
+							</button>
+						</li>
+					{/each}
+				</ul>
+			{/if}
+		</div>
 	</div>
 
 	<div class="inline-flex overflow-hidden rounded-md">

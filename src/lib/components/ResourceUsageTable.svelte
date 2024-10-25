@@ -34,13 +34,14 @@
 					monthsYears.add(monthYear);
 
 					let existingTask = tasks.find(
-						(task) => task.member === member && task.task === issue.issueTitle
+						(task) => task.member === member && task.task === issue.title
 					);
 
 					if (!existingTask) {
 						existingTask = {
 							member,
-							task: issue.issueTitle,
+							task: issue.title,
+							url: issue.url,
 							hours: {}
 						};
 						tasks.push(existingTask);
@@ -145,6 +146,7 @@
 	</div>
 
 	<div class="w-1/3">
+		<!-- TODO: replace this filter by a month year calendar. Display only the filtered months. -->
 		<label for="monthYear" class="block font-medium text-gray-700">Filter by Month-Year:</label>
 		<select
 			id="monthYear"
@@ -202,7 +204,7 @@
 						{task.member}
 					</td>
 					<td class="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
-						{task.task}
+						<a href={task.url}>{task.task}</a>
 					</td>
 					{#each monthYearArray as monthYear}
 						<td class="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
