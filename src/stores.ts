@@ -5,9 +5,12 @@ import type { Container } from '$lib/types';
 // Load settings from localStorage only if we're in the browser
 const isBrowser = typeof window !== 'undefined';
 
-// Create stores for selected member, selected month-year, sort field, and sort order
+// Create stores for selected member, selected month-year interval, sort field, and sort order
 export const selectedMemberStore = writable<string>('');
-export const selectedMonthYearStore = writable<string>('');
+export const selectedTemporalRange = writable({
+	from: '',
+	to: '' 
+});
 export const sortFieldStore = writable<'member' | 'task'>('member');
 export const sortAscendingStore = writable<boolean>(true);
 
@@ -47,3 +50,4 @@ export function updateCurrentContainer(container: Container | null) {
         localStorage.removeItem('current_container');
     }
 }
+

@@ -6,7 +6,7 @@
 	// Import the stores
 	import {
 		selectedMemberStore,
-		selectedMonthYearStore,
+		selectedTemporalRange,
 		sortFieldStore,
 		sortAscendingStore
 	} from '../../stores';
@@ -17,21 +17,81 @@
 
 	// Convert TimeData to tasks format for display
 	let tasks: Task[] = [];
-	let monthsYears = new Set<string>();
-	let members: string[];
+	let members: string[] = [];
+	let monthYearArray: string[] = [];
+	let allMonthYears: string[] = [];
 
+	let earliestMonthYear: string | null = null;
+	let latestMonthYear: string | null = null;
+
+	// Track the selected range
+	let selectedRange = { from: '', to: '' };
+
+	// Subscribe to the stores for filtering and sorting
+	let selectedMember = '';
+	let sortField: 'member' | 'task' = 'member'; // Default sort by team member
+	let sortAscending: boolean = true;
+
+	$: selectedMemberStore.subscribe((value) => {
+		selectedMember = value;
+	});
+
+	$: sortFieldStore.subscribe((value) => {
+		sortField = value;
+	});
+
+	$: sortAscendingStore.subscribe((value) => {
+		sortAscending = value;
+	});
+
+	$: selectedTemporalRange.subscribe((value) => {
+		selectedRange.from = value.from;
+		selectedRange.to = value.to;
+	});
+
+	// Computed filtered and sorted tasks based on selected member, month-year, and sorting
+	$: filteredTasks = tasks
+		.filter((task) => {
+			const fromDate = selectedRange.from && selectedRange.from !== '' ? selectedRange.from : null;
+			const toDate = selectedRange.to && selectedRange.to !== '' ? selectedRange.to : null;
+
+			return (
+				(!selectedMember || task.member === selectedMember) &&
+				Object.keys(task.hours).some((monthYear) => {
+					// Convert taskDate from "MMM YYYY" to "YYYY-MM" format
+					const [month, year] = monthYear.split(' '); // Split "Oct 2024" into ["Oct", "2024"]
+					const monthNumber = new Date(`${month} 1, 2020`).getMonth() + 1; // Get month number (1-based)
+					const taskDate = `${year}-${monthNumber.toString().padStart(2, '0')}`; // Convert to "YYYY-MM" format
+
+					// Check if the taskDate is within the range
+					const isAfterFromDate = fromDate ? taskDate >= fromDate : true;
+					const isBeforeToDate = toDate ? taskDate <= toDate : true;
+
+					return isAfterFromDate && isBeforeToDate;
+				})
+			);
+		})
+		.sort((a, b) => {
+			// Perform sorting based on the sortField and sortAscending flag
+			if (sortField === 'member') {
+				return sortAscending ? a.member.localeCompare(b.member) : b.member.localeCompare(a.member);
+			} else if (sortField === 'task') {
+				return sortAscending ? a.task.localeCompare(b.task) : b.task.localeCompare(a.task);
+			}
+			return 0;
+		});
+
+	// Populate tasks from timeData
 	$: {
+		let monthYears = new Set<string>();
 		tasks = [];
-		monthsYears.clear();
-
 		for (const [member, days] of Object.entries(timeData)) {
 			for (const [day, userDayTime] of Object.entries(days)) {
 				for (const issue of userDayTime.issues) {
 					const date = new Date(day);
 					const monthYear = date.toLocaleString('default', { month: 'short', year: 'numeric' });
 
-					// Register the month-year for table columns
-					monthsYears.add(monthYear);
+					monthYears.add(monthYear);
 
 					let existingTask = tasks.find(
 						(task) => task.member === member && task.task === issue.title
@@ -62,39 +122,44 @@
 			}
 		}
 
-		monthYearArray = Array.from(monthsYears).sort(
+		allMonthYears = Array.from(monthYears).sort(
 			(a, b) => new Date(a).getTime() - new Date(b).getTime()
 		);
 
+		const earliestDate = allMonthYears[0] ? new Date(allMonthYears[0]) : null;
+		const latestDate = allMonthYears[allMonthYears.length - 1]
+			? new Date(allMonthYears[allMonthYears.length - 1])
+			: null;
+
+		// Format the dates as "YYYY-MM"
+		const formatDate = (date: Date | null) =>
+			date ? `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}` : null;
+
+		earliestMonthYear = formatDate(earliestDate);
+		latestMonthYear = formatDate(latestDate);
+
+		monthYearArray = allMonthYears;
 		members = Array.from(new Set(tasks.map((task) => task.member)));
 	}
 
-	// Convert Set to sorted array of month-year strings
-	let monthYearArray = Array.from(monthsYears).sort(
-		(a, b) => new Date(a).getTime() - new Date(b).getTime()
-	);
+	// Dynamically generate monthYearArray based on selected range
+	$: {
+		monthYearArray = allMonthYears.filter((monthYear) => {
+			const monthYearDate = new Date(`${monthYear}-01`);
 
-	// Subscribe to the stores for filtering and sorting
-	let selectedMember = '';
-	let selectedMonthYear = '';
-	let sortField: 'member' | 'task' = 'member'; // Default sort by team member
-	let sortAscending: boolean = true;
+			const fromDate = selectedRange.from ? new Date(`${selectedRange.from}-01`) : null;
+			const toDate = selectedRange.to ? new Date(`${selectedRange.to}-01`) : null;
 
-	$: selectedMemberStore.subscribe((value) => {
-		selectedMember = value;
-	});
+			// Normalize the dates (set hours, minutes, seconds, and milliseconds to 0)
+			monthYearDate.setHours(0, 0, 0, 0);
+			if (fromDate) fromDate.setHours(0, 0, 0, 0);
+			if (toDate) toDate.setHours(0, 0, 0, 0);
 
-	$: selectedMonthYearStore.subscribe((value) => {
-		selectedMonthYear = value;
-	});
-
-	$: sortFieldStore.subscribe((value) => {
-		sortField = value;
-	});
-
-	$: sortAscendingStore.subscribe((value) => {
-		sortAscending = value;
-	});
+			return (
+				(fromDate ? monthYearDate >= fromDate : true) && (toDate ? monthYearDate <= toDate : true)
+			);
+		});
+	}
 
 	function toggleSort(field: 'member' | 'task') {
 		if (sortField === field) {
@@ -104,24 +169,6 @@
 			sortAscendingStore.set(true); // Default to ascending when switching fields
 		}
 	}
-
-	// Computed filtered and sorted tasks based on selected member, month-year, and sorting
-	$: filteredTasks = tasks
-		.filter((task) => {
-			return (
-				(!selectedMember || task.member === selectedMember) &&
-				(!selectedMonthYear || task.hours[selectedMonthYear]) // Use selectedMonthYear with correct type
-			);
-		})
-		.sort((a, b) => {
-			// Perform sorting based on the sortField and sortAscending flag
-			if (sortField === 'member') {
-				return sortAscending ? a.member.localeCompare(b.member) : b.member.localeCompare(a.member);
-			} else if (sortField === 'task') {
-				return sortAscending ? a.task.localeCompare(b.task) : b.task.localeCompare(a.task);
-			}
-			return 0;
-		});
 </script>
 
 <div class="mb-4 text-left">
@@ -146,18 +193,33 @@
 	</div>
 
 	<div class="w-1/3">
-		<!-- TODO: replace this filter by a month year calendar. Display only the filtered months. -->
-		<label for="monthYear" class="block font-medium text-gray-700">Filter by Month-Year:</label>
-		<select
-			id="monthYear"
-			class="mt-1 block w-full rounded-md border border-gray-300 p-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-			bind:value={$selectedMonthYearStore}
-		>
-			<option value="">All Months</option>
-			{#each monthYearArray as monthYear}
-				<option value={monthYear}>{monthYear}</option>
-			{/each}
-		</select>
+		<div class="mt-1 flex items-center space-x-2">
+			<!-- From Label and Input -->
+			<div class="flex w-1/2 flex-col items-start">
+				<label for="fromMonthYear" class="mb-1 block font-medium text-gray-700">From</label>
+				<input
+					type="month"
+					id="fromMonthYear"
+					min={earliestMonthYear}
+					max={latestMonthYear}
+					class="block w-full rounded-md border border-gray-300 p-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+					bind:value={$selectedTemporalRange.from}
+				/>
+			</div>
+
+			<!-- To Label and Input -->
+			<div class="flex w-1/2 flex-col items-start">
+				<label for="toMonthYear" class="mb-1 block font-medium text-gray-700">To</label>
+				<input
+					type="month"
+					id="toMonthYear"
+					min={earliestMonthYear}
+					max={latestMonthYear}
+					class="block w-full rounded-md border border-gray-300 p-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+					bind:value={$selectedTemporalRange.to}
+				/>
+			</div>
+		</div>
 	</div>
 </div>
 
@@ -165,7 +227,6 @@
 	<table class="min-w-full divide-y divide-gray-200 rounded-lg border border-gray-200">
 		<thead class="bg-gray-50">
 			<tr>
-				<!-- Sort by Team Member -->
 				<th
 					class="cursor-pointer px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500"
 					on:click={() => toggleSort('member')}
@@ -176,7 +237,6 @@
 					</div>
 				</th>
 
-				<!-- Sort by Task -->
 				<th
 					class="cursor-pointer px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500"
 					on:click={() => toggleSort('task')}
