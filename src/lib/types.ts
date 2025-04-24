@@ -7,7 +7,7 @@ export interface Label {
 
 export interface Timelog {
 	summary: string;
-	timeSpent: number;
+	timeSpent: number;	// in seconds
 	spentAt: string;
 	user: {
 		username: string;

@@ -1,6 +1,6 @@
 import { get } from 'svelte/store';
 import { gitlabGraphQLUrl, gitlabApiUrl, accessToken, currentContainerStore } from '../stores';
-import type { Container } from './types';
+import type { Container, Issue } from './types';
 
 async function fetchGitLabIssues(fetch: typeof window.fetch) {
     const currentContainer = get(currentContainerStore);
@@ -9,10 +9,14 @@ async function fetchGitLabIssues(fetch: typeof window.fetch) {
         throw new Error('No current container selected');
     }
 
-    const query = `
+    let hasNextPage = true;
+    let endCursor = '';
+    const issues: Issue[] = [];
+
+    const query = (cursor: string) => `
         {
             ${currentContainer.type}(fullPath: "${currentContainer.fullPath}") {
-                issues {
+                issues(after: "${cursor}") {
                     nodes {
                         title
                         createdAt
@@ -38,30 +42,40 @@ async function fetchGitLabIssues(fetch: typeof window.fetch) {
                                     username
                                 }
                             }
-                        },
+                        }
                         webUrl
+                    }
+                    pageInfo {
+                        hasNextPage
+                        endCursor
                     }
                 }
             }
         }
     `;
 
-    try {
-        const data = await gitlabRequest(query, fetch);
-        
-        if (data[currentContainer.type] && data[currentContainer.type].issues) {
-            return data[currentContainer.type].issues.nodes;
-        } else if (data.project && data.project.issues) {
-            return data.project.issues.nodes;
-        } else {
-            console.warn(`No issues found in ${currentContainer.type} ${currentContainer.name}.`);
+    while (hasNextPage) {
+        try {
+            const data = await gitlabRequest(query(endCursor), fetch);
+            const containerData = data[currentContainer.type] || data.project;
+
+            if (containerData && containerData.issues) {
+                issues.push(...containerData.issues.nodes);
+                hasNextPage = containerData.issues.pageInfo.hasNextPage;
+                endCursor = containerData.issues.pageInfo.endCursor;
+            } else {
+                console.warn(`No issues found in ${currentContainer.type} ${currentContainer.name}.`);
+                return [];
+            }
+        } catch (error) {
+            console.error('Error loading GitLab issues:', error);
             return [];
         }
-    } catch (error) {
-        console.error('Error loading GitLab issues:', error);
-        return [];
     }
+
+    return issues;
 }
+
 
 async function fetchGitLabContainers(fetch: typeof window.fetch) {
     interface PageInfo {
