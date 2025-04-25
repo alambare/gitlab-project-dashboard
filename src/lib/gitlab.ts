@@ -168,7 +168,6 @@ async function fetchGitLabContainers(fetch: typeof window.fetch) {
     }
 }
 
-
 async function gitlabRequest(query: string, fetch: typeof window.fetch) {
     const url = get(gitlabGraphQLUrl);
     const token = get(accessToken);
@@ -196,6 +195,28 @@ async function gitlabRequest(query: string, fetch: typeof window.fetch) {
     }
 }
 
+async function verifyConnection(gitlab_url: string, token: string) {
+    const url = `${gitlab_url}/api/v4/user`;
+
+    try {
+        const res = await fetch(url, {
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`,
+            },
+        });
+
+        if (!res.ok) {
+            return res.status + ' ' + res.statusText
+        }
+
+    } catch (error) {
+        return error as string
+    }
+
+    return null
+}
+
 async function gitlabRestRequest(endpoint: string) {
     const url = get(gitlabApiUrl);
     const token = get(accessToken);
@@ -220,4 +241,4 @@ async function gitlabRestRequest(endpoint: string) {
     }
 }
 
-export { gitlabRequest, gitlabRestRequest, fetchGitLabIssues, fetchGitLabContainers };
+export { gitlabRequest, gitlabRestRequest, fetchGitLabIssues, fetchGitLabContainers, verifyConnection };

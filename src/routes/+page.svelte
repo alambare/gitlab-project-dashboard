@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { fetchGitLabIssues, fetchGitLabContainers } from '$lib/gitlab';
+	import { fetchGitLabIssues, fetchGitLabContainers, verifyConnection } from '$lib/gitlab';
 	import TimeTable from '$lib/components/TimeTable.svelte';
 	import IssueTable from '$lib/components/IssueTable.svelte';
 	import Settings from '$lib/components/Settings.svelte';
@@ -10,16 +10,19 @@
 	import { type TimeData, type Issue, type TimeUnit, type Container } from '$lib/types';
 	import Header from '$lib/components/Header.svelte';
 	import ResourceUsageTable from '$lib/components/ResourceUsageTable.svelte';
-	import { accessToken, currentContainerStore } from '../stores'; // Import the store for the GitLab token
+	import { accessToken, gitlabUrl, currentContainerStore } from '../stores'; // Import the store for the GitLab token
+	import ConnectToGitLab from '$lib/components/ConnectToGitLab.svelte';
 
 	let issues: Issue[] = [];
 	let timeData: TimeData = {};
 	let timeUnit: TimeUnit = TIMEUNIT_HOURS;
-	let isHours: boolean = false;
-	let currentView: 'tasks' | 'resources' | 'settings' = 'resources'; // Include 'settings' in the type
+	let isHours: boolean = false; // TODO: make isHours a setting and properly handle settings with the store. 
+	let currentView: 'tasks' | 'resources' | 'settings' | 'connectToGitLab' = 'connectToGitLab'; // Include 'settings' in the type
 	let loading: boolean = false;
 	let containers: Container[] | null = null;
 	let currentContainer: Container | null = null; // Initialize currentContainer
+
+	let connectionError: string | null = null; // Error message for connection verification
 
 	// Subscribe to currentContainerStore to get the current container
 	currentContainerStore.subscribe((value) => {
@@ -27,11 +30,18 @@
 	});
 
 	onMount(async () => {
+		// TODO: verify the connection to GitLab not only the token
 		const token = $accessToken;
 		if (!token) {
-			currentView = 'settings';
 			return;
 		}
+		verifyConnection($gitlabUrl, token).then((err) => {
+			if (err) {
+				connectionError = err;
+			} else {
+				currentView = 'resources'; // TODO/ make it a setting
+			}
+		});
 
 		// Fetch issues only if there is a current container
 		loading = true;
@@ -49,10 +59,12 @@
 
 <div class="container mx-auto rounded-lg bg-white px-4 py-6 shadow-md">
 	<div class="sticky top-0 z-10 bg-white">
-		<Header bind:loading bind:issues bind:currentView bind:isHours bind:containers />
+		<Header bind:loading bind:issues bind:currentView bind:containers />
 	</div>
 
-	{#if currentView === 'settings'}
+	{#if currentView === 'connectToGitLab'}
+		<ConnectToGitLab bind:issues bind:containers bind:currentView error={connectionError} />
+	{:else if currentView === 'settings'}
 		<Settings bind:issues bind:containers />
 	{:else if loading}
 		<LoadingSpinner />
@@ -70,5 +82,7 @@
 		</div>
 	{:else if currentView === 'tasks'}
 		<IssueTable {issues} {timeUnit} />
+	{:else}
+		<p class="text-gray-600">Invalid view selected.</p>
 	{/if}
 </div>

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { fetchGitLabContainers, fetchGitLabIssues } from '$lib/gitlab';
+	import { fetchGitLabContainers, fetchGitLabIssues, verifyConnection } from '$lib/gitlab';
 	import type { Container, Issue } from '$lib/types';
 	import { gitlabUrl, accessToken, updateGitLabSettings } from '../../stores';
 	import { onMount } from 'svelte';
@@ -13,6 +13,8 @@
 
 	export let issues: Issue[];
 	export let containers: Container[] | null;
+	export let currentView: string;
+	export let error: string | null = null;
 
 	// Subscribe to the store on mount to load the initial values
 	onMount(() => {
@@ -22,15 +24,23 @@
 		});
 		accessToken.subscribe((value) => {
 			currentAccessToken = value;
-			originalAccessToken = value; // Set original value
+			originalAccessToken = value;
 		});
 	});
 
-	// Save the settings and update the store
-	const saveSettings = async () => {
+	const handleConnect = async () => {
+		error = await verifyConnection(currentGitlabUrl, currentAccessToken);
+
+		if (error !== null) {
+			return;
+		}
+
+		// Save the settings and update the store
 		updateGitLabSettings(currentGitlabUrl, currentAccessToken);
 		containers = await fetchGitLabContainers(fetch);
 		issues = await fetchGitLabIssues(fetch);
+
+		currentView = 'resources'; // Switch to the resources view
 	};
 
 	const toggleAccessTokenVisibility = () => {
@@ -38,11 +48,14 @@
 	};
 
 	// Enable save button only if there are changes
-	$: isDirty = currentGitlabUrl !== originalGitlabUrl || currentAccessToken !== originalAccessToken;
+	$: isDirty =
+		currentAccessToken &&
+		currentGitlabUrl &&
+		(currentGitlabUrl !== originalGitlabUrl || currentAccessToken !== originalAccessToken);
 </script>
 
 <div class="mx-auto mt-12 max-w-xl rounded-lg bg-white p-6 shadow-md">
-	<h2 class="mb-6 text-2xl font-semibold text-gray-800">Settings</h2>
+	<h2 class="mb-6 text-2xl font-semibold text-gray-800">Connect to GitLab</h2>
 
 	<div class="mb-6">
 		<label for="gitlab-url" class="block text-sm font-medium text-gray-700">GitLab URL</label>
@@ -127,22 +140,10 @@
 		</div>
 	</div>
 
-	<div class="flex items-center space-x-2">
-		<span class="text-sm font-medium text-gray-900 dark:text-gray-700">Days</span>
-
-		<label class="inline-flex cursor-pointer items-center">
-			<input bind:checked={isHours} type="checkbox" value="" class="peer sr-only" />
-			<div
-				class="peer relative h-6 w-14 rounded-full bg-gradient-to-r from-yellow-400 to-orange-500 after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-yellow-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-gradient-to-r peer-checked:from-purple-600 peer-checked:to-blue-500 peer-checked:after:translate-x-7 peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rtl:peer-checked:after:-translate-x-full dark:after:border-gray-600 dark:peer-focus:ring-blue-800"
-			></div>
-		</label>
-
-		<span class="text-sm font-medium text-gray-900 dark:text-gray-700">Hours</span>
-	</div>
-
-	<div class="flex justify-end">
+	<div class="flex justify-between">
+		<p class="mt-2 text-sm text-red-600">{error ? error : ''}</p>
 		<button
-			on:click={saveSettings}
+			on:click={handleConnect}
 			class="inline-flex justify-center rounded-md border border-transparent px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
 			class:bg-blue-600={isDirty}
 			class:bg-gray-400={!isDirty}
@@ -150,7 +151,7 @@
 			class:cursor-not-allowed={!isDirty}
 			disabled={!isDirty}
 		>
-			Save Settings
+			Connect
 		</button>
 	</div>
 </div>
