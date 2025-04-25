@@ -14,6 +14,10 @@ export interface Timelog {
 	};
 }
 
+export interface User {
+	name: string;
+}
+
 export interface Issue {
 	title: string;
 	createdAt: string;
@@ -25,6 +29,12 @@ export interface Issue {
 	labels: {
 		nodes: Label[];
 	};
+	milestone: {
+		title: string;
+	} | null;
+	assignees: {
+		nodes: User[];
+	}
 	iid: number;
 	id: string;
 	timelogs: {
@@ -70,7 +80,7 @@ export interface Task {
 }
 
 export interface Container {
-    fullPath: string;
+	fullPath: string;
 	name: string;
-    type: 'project' | 'group';
+	type: 'project' | 'group';
 }

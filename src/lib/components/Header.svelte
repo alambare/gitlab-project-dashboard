@@ -58,6 +58,88 @@
 			await refreshIssues();
 		}
 	}
+
+	// Function to convert issues data to CSV format
+	function issuesToCSV(issues: Issue[]): string {
+		if (issues.length === 0) return '';
+
+		// Extract unique labels
+		const labelSet = new Set<string>();
+		issues.forEach((issue) => {
+			issue.labels.nodes.forEach((label) => labelSet.add(label.title));
+		});
+		const uniqueLabels = Array.from(labelSet);
+
+		// Prepare CSV headers
+		const excludedKeys = ['labels', 'assignees', 'milestone'];
+		const keys = Object.keys(issues[0]).filter((key) => !excludedKeys.includes(key));
+
+		const csvRows = [keys.concat('assignee', 'milestone').concat(uniqueLabels).join(',')];
+
+		// Add data rows
+		issues.forEach((issue) => {
+			const values = keys.map((key) => {
+				let value = issue[key as keyof Issue];
+				if (value instanceof Object) {
+					value = JSON.stringify(value); // Convert nested objects to JSON string
+				}
+				const escapedValue = String(value).replace(/"/g, '""');
+				return `"${escapedValue}"`;
+			});
+
+			const assigneeName = issue.assignees.nodes.length > 0 ? issue.assignees.nodes[0].name : '';
+			values.push(`"${assigneeName}"`);
+
+			const milestoneTitle = issue.milestone ? issue.milestone.title : '';
+			values.push(`"${milestoneTitle}"`);
+
+			// Add label values
+			uniqueLabels.forEach((label) => {
+				values.push(
+					issue.labels.nodes.some((issueLabel) => issueLabel.title === label) ? 'true' : 'false'
+				);
+			});
+
+			csvRows.push(values.join(','));
+		});
+
+		return csvRows.join('\n');
+	}
+
+	// Function to download CSV file
+	function downloadCSV(csvContent: string, fileName: string) {
+		const blob = new Blob([csvContent], { type: 'text/csv' });
+		const url = URL.createObjectURL(blob);
+
+		const a = document.createElement('a');
+		a.href = url;
+		a.download = fileName;
+		document.body.appendChild(a);
+		a.click();
+		document.body.removeChild(a);
+		URL.revokeObjectURL(url);
+	}
+
+	// Function to get the current timestamp in a readable format
+	function getTimestamp(): string {
+		const now = new Date();
+		const year = now.getFullYear();
+		const month = String(now.getMonth() + 1).padStart(2, '0'); // Months are zero-based
+		const day = String(now.getDate()).padStart(2, '0');
+		const hours = String(now.getHours()).padStart(2, '0');
+		const minutes = String(now.getMinutes()).padStart(2, '0');
+		const seconds = String(now.getSeconds()).padStart(2, '0');
+
+		return `${year}-${month}-${day}_${hours}-${minutes}-${seconds}`;
+	}
+
+	// Function to handle button click
+	function handleExport() {
+		const csvContent = issuesToCSV(issues);
+		const fileName = `issues_${currentContainer?.fullPath || 'export'}_${getTimestamp()}.csv`;
+
+		downloadCSV(csvContent, fileName);
+	}
 </script>
 
 <div class="mb-6 flex flex-wrap items-center justify-between pt-1">
@@ -135,6 +217,12 @@
 	</div>
 
 	<div class="flex space-x-6">
+		<button
+			class="rounded border border-blue-500 bg-transparent px-4 py-2 font-semibold text-blue-700 hover:border-transparent hover:bg-blue-500 hover:text-white"
+			on:click={handleExport}
+		>
+			Export issues as CSV
+		</button>
 		<div class="flex items-center space-x-2">
 			<span class="text-sm font-medium text-gray-900 dark:text-gray-700">Days</span>
 

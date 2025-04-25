@@ -25,6 +25,14 @@ async function fetchGitLabIssues(fetch: typeof window.fetch) {
                         timeEstimate
                         totalTimeSpent
                         projectId
+                        milestone {
+                            title
+                        }
+                        assignees {
+                            nodes {
+                                name
+                            }
+                        }
                         labels {
                             nodes {
                                 title
