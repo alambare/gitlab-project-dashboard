@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { Issue, TimeUnit } from '$lib/types';
 	import { formatTime } from '$lib/utils';
-	import IssueDetail from './IssueDetail.svelte';
+	import IssueSumary from './IssueSumary.svelte';
 	export let relatedIssue: Issue;
 	export let timeUnit: TimeUnit;
 
@@ -32,7 +32,7 @@
 	</div>
 
 	<div class="ml-2 flex-1">
-		<IssueDetail issue={relatedIssue} {timeUnit} />
+		<IssueSumary issue={relatedIssue} {timeUnit} />
 	</div>
 </div>
 

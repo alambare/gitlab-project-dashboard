@@ -6,11 +6,29 @@
 	export let timeUnit: TimeUnit;
 	export let totalTimeSpent: number | null = null;
 
+	export let showRelatedIssues: boolean | null = null;
+
 	$: total = totalTimeSpent || issue.totalTimeSpent;
+
+	function toggleRelatedIssues() {
+		showRelatedIssues = !showRelatedIssues;
+	}
 </script>
 
+<link
+	rel="stylesheet"
+	href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+/>
+
 <div class="flex flex-wrap items-center justify-between">
-	<h2 class="mr-4 text-lg font-semibold text-gray-800"><a href={issue.webUrl}>{issue.title}</a></h2>
+	<h2 class="mr-4 text-lg font-semibold text-gray-800">
+		{#if showRelatedIssues !== null}
+			<button class="" on:click={toggleRelatedIssues}>
+				<span class="">{showRelatedIssues ? '▼' : '►'}</span>
+			</button>
+		{/if}
+		<a href={issue.webUrl}>{issue.title}</a>
+	</h2>
 
 	<div>
 		<span class="mr-1 text-sm text-gray-600">{formatDate(issue.createdAt)}</span> /

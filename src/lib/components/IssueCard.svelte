@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { gitlabRestRequest } from '$lib/gitlab';
 	import type { Issue, TimeUnit, Timelog } from '$lib/types';
-	import IssueDetails from '$lib/components/IssueDetail.svelte';
+	import IssueSumary from '$lib/components/IssueSumary.svelte';
 	import RelatedIssueItem from '$lib/components/RelatedIssueItem.svelte';
 	import { onMount } from 'svelte';
 	import { formatTime } from '$lib/utils';
@@ -81,37 +81,25 @@
 		fetchRelatedIssues();
 		calculateUserTimeSpent();
 	});
-
-	function toggleRelatedIssues() {
-		showRelatedIssues = !showRelatedIssues;
-	}
 </script>
 
 <div class={`rounded-lg bg-white p-4 shadow-md ${issue.closedAt ? 'opacity-50' : ''}`}>
-	<IssueDetails {issue} {timeUnit} {totalTimeSpent} />
+	<IssueSumary {issue} {timeUnit} {totalTimeSpent} bind:showRelatedIssues />
 
-	<div class="mt-4">
-		<h2 class="text-md font-semibold text-gray-800">Total time spent by developer</h2>
-		<div class="mt-2 flex flex-wrap text-sm text-gray-700">
-			{#each Object.entries(userTimeSpent) as [username, timeSpent]}
-				<div class="mb-2 mr-4">
-					<span class="font-semibold">{username}:</span>
-					<span> {formatTime(timeUnit, timeSpent)}</span>
-				</div>
-			{/each}
-		</div>
-	</div>
-
-	<div class="mt-6 border-t border-gray-300 pt-4">
-		<button
-			class="text-md flex cursor-pointer items-center font-semibold text-gray-700"
-			on:click={toggleRelatedIssues}
-		>
-			<span class="mr-2">{showRelatedIssues ? '▼' : '►'}</span>
-			<span>Related Issues</span>
-		</button>
-
+	<div class="mt-2">
 		{#if showRelatedIssues}
+			<div class="mt-4">
+				<div class="mt-2 flex flex-wrap text-sm text-gray-700">
+					<p class="mr-2">Resources spent:</p>
+					{#each Object.entries(userTimeSpent) as [username, timeSpent]}
+						<div class="mb-2 mr-4">
+							<span class="font-semibold">{username}:</span>
+							<span> {formatTime(timeUnit, timeSpent)}</span>
+						</div>
+					{/each}
+				</div>
+			</div>
+
 			{#if isLoading}
 				<div class="mt-4 text-center text-gray-600">Loading related issues...</div>
 			{:else if relatedIssues.length > 0}
