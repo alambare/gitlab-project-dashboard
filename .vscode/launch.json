@@ -17,7 +17,13 @@
 			"name": "Launch Firefox against localhost",
 			"url": "http://localhost:5173",
 			"webRoot": "${workspaceFolder}",
-			"firefoxExecutable": ""
+			"firefoxExecutable": "",
+			"pathMappings": [
+				{
+					"url": "http://localhost:5173/src/routes/+page.svelte",
+					"path": "${workspaceFolder}/src/routes/%2Bpage.svelte"
+				}
+			]
 		}
 	]
 }
